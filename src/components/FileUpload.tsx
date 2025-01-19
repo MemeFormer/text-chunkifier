@@ -25,7 +25,7 @@ const FileUpload = ({ onFileSelect }: FileUploadProps) => {
         type="file"
         ref={fileInputRef}
         onChange={handleChange}
-        accept=".txt,.epub"
+        accept=".txt,.epub,.pdf"
         className="hidden"
       />
       <Button 
@@ -35,7 +35,7 @@ const FileUpload = ({ onFileSelect }: FileUploadProps) => {
         Upload Ebook
       </Button>
       <p className="mt-2 text-sm text-slate-600">
-        Supported formats: .txt, .epub
+        Supported formats: .txt, .epub, .pdf
       </p>
     </div>
   );

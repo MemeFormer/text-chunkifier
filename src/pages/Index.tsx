@@ -13,7 +13,26 @@ const Index = () => {
 
   const handleFileUpload = async (file: File) => {
     try {
+      if (file.name.endsWith('.pdf')) {
+        toast({
+          title: "PDF Support Coming Soon",
+          description: "Please convert your PDF to EPUB or TXT format for now.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const extractedChapters = await processEbook(file);
+      
+      if (extractedChapters.length === 0) {
+        toast({
+          title: "No Chapters Found",
+          description: "Could not detect any chapters in the uploaded file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setChapters(extractedChapters);
       toast({
         title: "Success",
@@ -22,7 +41,7 @@ const Index = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process the ebook. Please try a different file.",
+        description: error instanceof Error ? error.message : "Failed to process the ebook. Please try a different file.",
         variant: "destructive",
       });
     }

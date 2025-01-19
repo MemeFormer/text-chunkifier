@@ -2,12 +2,13 @@ import { Chapter } from "@/types/book";
 import * as epub from "epub";
 
 export const processEbook = async (file: File): Promise<Chapter[]> => {
-  const text = await file.text();
-  
   if (file.name.endsWith('.txt')) {
+    const text = await file.text();
     return processTxtFile(text);
   } else if (file.name.endsWith('.epub')) {
     return processEpubFile(file);
+  } else if (file.name.endsWith('.pdf')) {
+    throw new Error('PDF processing is not yet implemented. Please convert your PDF to EPUB or TXT format.');
   }
   
   throw new Error('Unsupported file format');
@@ -33,8 +34,44 @@ const processTxtFile = (text: string): Chapter[] => {
 };
 
 const processEpubFile = async (file: File): Promise<Chapter[]> => {
-  // This is a placeholder for epub processing
-  // You would need to implement the actual epub parsing logic here
-  // using the epub library
-  return processTxtFile(await file.text());
+  return new Promise((resolve, reject) => {
+    // Convert File to Buffer
+    file.arrayBuffer().then(buffer => {
+      const epubBook = new epub.EPub(Buffer.from(buffer));
+      
+      epubBook.on('end', () => {
+        // Get the table of contents
+        const chapters: Chapter[] = [];
+        let chapterNumber = 1;
+
+        // Process each chapter from the spine
+        epubBook.spine.contents.forEach((item: any) => {
+          epubBook.getChapter(item.id, (error: Error | null, text: string) => {
+            if (error) {
+              console.error('Error processing chapter:', error);
+              return;
+            }
+
+            // Remove HTML tags and clean up the text
+            const cleanText = text.replace(/<[^>]*>/g, ' ')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+
+            chapters.push({
+              number: chapterNumber++,
+              content: cleanText,
+            });
+
+            // Resolve when all chapters are processed
+            if (chapters.length === epubBook.spine.contents.length) {
+              resolve(chapters.sort((a, b) => a.number - b.number));
+            }
+          });
+        });
+      });
+
+      epubBook.on('error', reject);
+      epubBook.parse();
+    });
+  });
 };
