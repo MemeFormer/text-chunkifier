@@ -1,5 +1,5 @@
+import EPub from "epub";
 import { Chapter } from "@/types/book";
-import * as epub from "epub";
 
 export const processEbook = async (file: File): Promise<Chapter[]> => {
   if (file.name.endsWith('.txt')) {
@@ -37,7 +37,7 @@ const processEpubFile = async (file: File): Promise<Chapter[]> => {
   return new Promise((resolve, reject) => {
     // Convert File to Buffer
     file.arrayBuffer().then(buffer => {
-      const epubBook = new epub.EPub(Buffer.from(buffer));
+      const epubBook = new EPub(Buffer.from(buffer));
       
       epubBook.on('end', () => {
         // Get the table of contents
