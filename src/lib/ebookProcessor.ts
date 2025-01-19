@@ -35,16 +35,14 @@ const processTxtFile = (text: string): Chapter[] => {
 
 const processEpubFile = async (file: File): Promise<Chapter[]> => {
   return new Promise((resolve, reject) => {
-    // Convert File to Buffer
-    file.arrayBuffer().then(buffer => {
-      const epubBook = new EPub(Buffer.from(buffer));
+    const reader = new FileReader();
+    reader.onload = () => {
+      const epubBook = new EPub(reader.result as ArrayBuffer);
       
       epubBook.on('end', () => {
-        // Get the table of contents
         const chapters: Chapter[] = [];
         let chapterNumber = 1;
 
-        // Process each chapter from the spine
         epubBook.spine.contents.forEach((item: any) => {
           epubBook.getChapter(item.id, (error: Error | null, text: string) => {
             if (error) {
@@ -72,6 +70,9 @@ const processEpubFile = async (file: File): Promise<Chapter[]> => {
 
       epubBook.on('error', reject);
       epubBook.parse();
-    });
+    };
+
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsArrayBuffer(file);
   });
 };
